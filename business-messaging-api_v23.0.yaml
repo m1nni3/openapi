@@ -41,8 +41,6 @@ tags:
   description: 'WhatsApp Business Platform APIs for messaging, account management, and partner integrations.
 
     '
-- name: Multi-Partner Solutions
-  description: APIs for managing Multi-Partner Solution details and configuration
 - name: Business Phone Numbers
   description: APIs for managing phone numbers in WhatsApp Business Accounts
 - name: Pre-Verified Phone Numbers
@@ -55,8 +53,6 @@ tags:
   description: APIs for retrieving WhatsApp Business Accounts owned by a business
 - name: Pre-Verified Phone Number Sharing
   description: APIs for sharing pre-verified phone numbers between business entities
-- name: WhatsApp Business Accounts
-  description: APIs for creating and managing WhatsApp Business Accounts
 - name: Call Permissions
   description: 'Use the **`/{Phone-Number-ID}/call_permissions`** endpoint to check whether you have permission to call a specific WhatsApp user and understand what calling-related actions are available.
 
@@ -217,8 +213,6 @@ tags:
   description: APIs for registering and managing WhatsApp Business phone numbers
 - name: Phone Number Verification
   description: APIs for WhatsApp Business phone number verification process
-- name: Phone Number Verification
-  description: APIs for verifying WhatsApp Business Account phone numbers
 - name: Business Encryption
   description: APIs for managing WhatsApp Business Account encryption configuration
 - name: WhatsApp Business Profile
@@ -229,32 +223,14 @@ tags:
   description: APIs for retrieving WhatsApp Business Message History Events and delivery status occurrences
 - name: Migration Intent
   description: APIs for retrieving WhatsApp Business Account migration intent details
-- name: Pre-Verified Phone Numbers
-  description: APIs for managing WhatsApp Business pre-verified phone numbers
 - name: Pre-Verified Phone Number Partners
   description: APIs for managing partner businesses associated with pre-verified phone numbers
-- name: Pre-Verified Phone Numbers
-  description: APIs for managing pre-verified phone number verification process
-- name: Pre-Verified Phone Numbers
-  description: APIs for managing WhatsApp Business Pre-Verified Phone Number verification
-- name: Multi-Partner Solutions
-  description: APIs for managing Multi-Partner Solution access tokens and permissions
 - name: WhatsApp Business Solution Management
   description: 'Operations for managing WhatsApp Business Multi-Partner Solutions including
 
     lifecycle management, status transitions, and partnership workflows.
 
     '
-- name: Multi-Partner Solutions
-  description: APIs for managing Multi-Partner Solution partnerships and invitations
-- name: WhatsApp Business API
-  description: WhatsApp Business Platform APIs for solution management
-- name: Multi-Partner Solutions
-  description: APIs for managing Multi-Partner Solution lifecycle and status transitions
-- name: Multi-Partner Solutions
-  description: APIs for managing Multi-Partner Solution requests and lifecycle operations
-- name: Multi-Partner Solutions
-  description: APIs for managing Multi-Partner Solution lifecycle and operations
 - name: Assigned WhatsApp Business Accounts
   description: APIs for managing assigned WhatsApp Business Accounts for users
 - name: WhatsApp Account Numbers
@@ -267,12 +243,8 @@ tags:
   description: APIs for managing WhatsApp Business Account on-behalf requests and business relationships
 - name: OBO Mobility Intent
   description: APIs for managing On-Behalf-Of mobility intent operations for WhatsApp Business Accounts
-- name: Phone Number Management
-  description: APIs for managing WhatsApp Business Account phone numbers and their lifecycle
 - name: Schedule Management
   description: APIs for managing WhatsApp Business Account schedules and scheduling configurations
-- name: OBO Mobility Intent
-  description: APIs for managing On-Behalf-Of mobility intent for WhatsApp Business Accounts
 - name: Solution Migration
   description: APIs for managing Multi-Partner Solution migration processes
 - name: Webhook Subscriptions
@@ -671,76 +643,30 @@ components:
           example: https://graph.facebook.com/v23.0/1234567890/whatsapp_business_solutions?after=MTAxNTExOTQ1MjAwNzI5NDE
     AddPhoneNumbersRequest:
       type: object
-      description: Request payload for adding phone numbers to a business account
-      required:
-      - phone_numbers
-      properties:
-        phone_numbers:
-          type: array
-          description: List of phone numbers to add to the business account
-          items:
-            type: string
-            pattern: ^\\+[1-9]\\d{1,14}$
-            description: Phone number in E.164 format (e.g., +1234567890)
-          minItems: 1
-          maxItems: 10
-          example:
-          - '+1234567890'
-          - '+1987654321'
-    AddPhoneNumbersResponse:
-      type: object
-      description: Response containing results of phone number addition operation
-      required:
-      - successful_count
-      - failed_count
-      - phone_number_records
-      properties:
-        successful_count:
-          type: integer
-          description: Number of phone numbers successfully added
-          minimum: 0
-          example: 2
-        failed_count:
-          type: integer
-          description: Number of phone numbers that failed to be added
-          minimum: 0
-          example: 0
-        phone_number_records:
-          type: array
-          description: Detailed results for each phone number
-          items:
-            $ref: '#/components/schemas/PhoneNumberRecord'
-    PhoneNumberRecord:
-      type: object
-      description: Individual phone number processing result
+      description: Request payload for adding a phone number to a business account
       required:
       - phone_number
-      - status
       properties:
         phone_number:
           type: string
-          description: The phone number that was processed
+          description: 'Phone number to add to the business account. Accepts E.164 format or formatted numbers
+
+            with spaces, hyphens, and parentheses (e.g., +1234567890, +1 (631) 555-1000, +1-631-555-1000).
+
+            The phone number will be normalized and validated by the endpoint.
+
+            '
           example: '+1234567890'
-        status:
+    AddPhoneNumbersResponse:
+      type: object
+      description: Response containing the ID of the successfully added phone number
+      required:
+      - id
+      properties:
+        id:
           type: string
-          description: Processing status for this phone number
-          enum:
-          - SUCCESS
-          - FAILED
-          - PENDING_VERIFICATION
-          example: SUCCESS
-        phone_number_id:
-          type: string
-          description: Unique identifier for the phone number (only present if status is SUCCESS)
+          description: Unique identifier for the preverified phone number entity that was created
           example: '1234567890123456'
-        error_message:
-          type: string
-          description: Error description (only present if status is FAILED)
-          example: Phone number is already registered to another business
-        verification_code:
-          type: string
-          description: Verification code required for phone number confirmation (only present if status is PENDING_VERIFICATION)
-          example: '123456'
     PreVerifiedPhoneNumber:
       type: object
       description: Pre-verified phone number details and status information
@@ -1187,11 +1113,10 @@ components:
       type: object
       description: Request payload for sharing a pre-verified phone number with another business
       required:
-      - preverified_phone_number_id
-      - target_business_id
-      - permissions
+      - preverified_id
+      - partner_business_id
       properties:
-        preverified_phone_number_id:
+        preverified_id:
           type: string
           description: 'Unique identifier of the pre-verified phone number to be shared.
 
@@ -1200,49 +1125,15 @@ components:
             '
           pattern: ^[0-9]+$
           example: '1234567890123456'
-        target_business_id:
+        partner_business_id:
           type: string
-          description: 'Business ID of the target business that will receive access to the pre-verified phone number.
+          description: 'Business ID of the partner business that will receive access to the pre-verified phone number.
 
             Must be a valid business entity accessible to the requesting app.
 
             '
           pattern: ^[0-9]+$
           example: '9876543210987654'
-        permissions:
-          type: array
-          description: 'List of permissions to grant to the target business for the shared phone number.
-
-            Defines what operations the target business can perform with the shared phone number.
-
-            '
-          items:
-            $ref: '#/components/schemas/PreVerifiedPhoneNumberPermission'
-          minItems: 1
-          maxItems: 10
-          example:
-          - MESSAGING
-          - VIEW_DETAILS
-        sharing_note:
-          type: string
-          description: 'Optional note or description for the sharing operation.
-
-            Can be used to document the business purpose or context of the sharing relationship.
-
-            '
-          maxLength: 500
-          example: Sharing phone number for joint marketing campaign
-        expiration_date:
-          type: string
-          format: date-time
-          description: 'Optional expiration date for the sharing relationship.
-
-            If specified, the sharing will automatically expire at this date and time.
-
-            Format: ISO 8601 date-time string (YYYY-MM-DDTHH:MM:SSZ)
-
-            '
-          example: '2024-12-31T23:59:59Z'
     PreVerifiedPhoneNumberPermission:
       type: string
       description: Specific permissions that can be granted for shared pre-verified phone numbers
@@ -1257,38 +1148,12 @@ components:
       type: object
       description: Response containing details of the successful phone number sharing operation
       required:
-      - sharing_id
-      - status
-      - shared_at
+      - success
       properties:
-        sharing_id:
-          type: string
-          description: Unique identifier for the sharing relationship
-          example: '5678901234567890'
-        status:
-          $ref: '#/components/schemas/SharingStatus'
-        shared_at:
-          type: string
-          format: date-time
-          description: Timestamp when the sharing operation was completed
-          example: '2024-01-15T10:30:00Z'
-        preverified_phone_number:
-          $ref: '#/components/schemas/SharedPreVerifiedPhoneNumber'
-        target_business:
-          $ref: '#/components/schemas/BusinessSummary'
-        granted_permissions:
-          type: array
-          description: List of permissions granted to the target business
-          items:
-            $ref: '#/components/schemas/PreVerifiedPhoneNumberPermission'
-          example:
-          - MESSAGING
-          - VIEW_DETAILS
-        expiration_date:
-          type: string
-          format: date-time
-          description: Expiration date of the sharing relationship, if applicable
-          example: '2024-12-31T23:59:59Z'
+        success:
+          type: boolean
+          description: Indicates whether the sharing operation was successful
+          example: true
     SharingStatus:
       type: string
       description: Current status of the phone number sharing relationship
@@ -1344,203 +1209,6 @@ components:
           - UNVERIFIED
           - PENDING
           example: VERIFIED
-    PreVerifiedPhoneNumberShareDeleteRequest:
-      type: object
-      description: Request payload for deleting a pre-verified phone number sharing relationship
-      properties:
-        sharing_id:
-          type: string
-          description: 'Unique identifier of the sharing relationship to be deleted.
-
-            Either sharing_id or both preverified_phone_number_id and target_business_id must be provided.
-
-            '
-          pattern: ^[0-9]+$
-          example: '5678901234567890'
-        preverified_phone_number_id:
-          type: string
-          description: 'Unique identifier of the pre-verified phone number for which sharing should be deleted.
-
-            Must be provided together with target_business_id if sharing_id is not provided.
-
-            '
-          pattern: ^[0-9]+$
-          example: '1234567890123456'
-        target_business_id:
-          type: string
-          description: 'Business ID of the target business from which to revoke access.
-
-            Must be provided together with preverified_phone_number_id if sharing_id is not provided.
-
-            '
-          pattern: ^[0-9]+$
-          example: '9876543210987654'
-    PreVerifiedPhoneNumberShareDeleteResponse:
-      type: object
-      description: Response containing details of the successful sharing relationship deletion
-      required:
-      - success
-      - deleted_at
-      properties:
-        success:
-          type: boolean
-          description: Indicates whether the deletion operation was successful
-          example: true
-        deleted_at:
-          type: string
-          format: date-time
-          description: Timestamp when the sharing relationship was deleted
-          example: '2024-01-15T10:30:00Z'
-        sharing_id:
-          type: string
-          description: Unique identifier of the deleted sharing relationship
-          example: '5678901234567890'
-        preverified_phone_number:
-          $ref: '#/components/schemas/SharedPreVerifiedPhoneNumber'
-        target_business:
-          $ref: '#/components/schemas/BusinessSummary'
-    WhatsAppBusinessAccountCreationRequest:
-      type: object
-      description: Request payload for creating a WhatsApp Business Account
-      required:
-      - name
-      properties:
-        name:
-          type: string
-          description: Human-readable name for the WhatsApp Business Account
-          minLength: 1
-          maxLength: 100
-          example: My Business WhatsApp Account
-        primary_funding_id:
-          type: string
-          description: ID of the primary funding source (credit card or extended credit)
-          example: '1234567890123456'
-        purchase_order_number:
-          type: string
-          description: Purchase order number for billing reference
-          example: PO-2024-001
-        currency:
-          type: string
-          description: Currency code for billing (ISO 4217 format)
-          pattern: ^[A-Z]{3}$
-          example: USD
-        timezone_id:
-          type: integer
-          description: Timezone ID for the account
-          example: 1
-        business_type:
-          $ref: '#/components/schemas/WhatsAppBusinessType'
-        on_behalf_of_business_id:
-          type: string
-          description: Business ID when creating account on behalf of another business
-          example: '9876543210987654'
-    WhatsAppBusinessAccount_2:
-      type: object
-      description: WhatsApp Business Account details and configuration
-      required:
-      - id
-      - name
-      properties:
-        id:
-          type: string
-          description: Unique identifier for the WhatsApp Business Account
-          example: '1234567890123456'
-        name:
-          type: string
-          description: Human-readable name of the WhatsApp Business Account
-          minLength: 1
-          maxLength: 255
-          example: My WhatsApp Business Account
-        account_review_status:
-          $ref: '#/components/schemas/AccountReviewStatus'
-        purchase_order_number:
-          type: string
-          description: Purchase order number associated with the account
-          example: PO-2023-001234
-        currency:
-          type: string
-          description: Currency code for the WABA (ISO 4217 format)
-          pattern: ^[A-Z]{3}$
-          example: USD
-        timezone_id:
-          type: string
-          description: Timezone identifier for the WABA
-          example: '1'
-        business_verification_status:
-          $ref: '#/components/schemas/BusinessVerificationStatus'
-        country:
-          type: string
-          description: Country code where the WABA is registered
-          pattern: ^[A-Z]{2}$
-          example: US
-        on_behalf_of_business_info:
-          $ref: '#/components/schemas/OnBehalfOfBusinessInfo'
-        is_enabled_for_insights:
-          type: boolean
-          description: Whether insights are enabled for this WABA
-          example: true
-        message_template_namespace:
-          type: string
-          description: Namespace for message templates
-          example: business_namespace_123
-    BusinessVerificationStatus_2:
-      type: string
-      description: Verification status of the business associated with the WABA
-      enum:
-      - VERIFIED
-      - UNVERIFIED
-      - PENDING
-      - REJECTED
-      example: VERIFIED
-    WhatsAppBusinessAccountCreationResponse:
-      type: object
-      description: Response after successfully creating a WhatsApp Business Account
-      required:
-      - id
-      - payment_account_id
-      properties:
-        id:
-          type: string
-          description: Unique identifier for the created WhatsApp Business Account
-          example: '1234567890123456'
-        payment_account_id:
-          type: string
-          description: ID of the associated payment account for billing
-          example: '9876543210987654'
-    WhatsAppBusinessAccountsResponse:
-      type: object
-      description: Response containing list of WhatsApp Business Accounts
-      properties:
-        data:
-          type: array
-          description: Array of WhatsApp Business Accounts
-          items:
-            $ref: '#/components/schemas/WhatsAppBusinessAccount'
-        paging:
-          $ref: '#/components/schemas/CursorPaging'
-    CursorPaging_5:
-      type: object
-      description: Cursor-based pagination information
-      properties:
-        cursors:
-          type: object
-          properties:
-            before:
-              type: string
-              description: Cursor pointing to the start of the page of data
-              example: QVFIUjNpUWpVWmRBd0Dn
-            after:
-              type: string
-              description: Cursor pointing to the end of the page of data
-              example: QVFIUjNpUWpVWmRBd0Rn
-        previous:
-          type: string
-          description: URL for the previous page of results
-          example: https://graph.facebook.com/v23.0/1234567890/whatsapp_business_accounts?before=QVFIUjNpUWpVWmRBd0Dn
-        next:
-          type: string
-          description: URL for the next page of results
-          example: https://graph.facebook.com/v23.0/1234567890/whatsapp_business_accounts?after=QVFIUjNpUWpVWmRBd0Rn
     BlockedUser:
       type: object
       properties:
@@ -5344,7 +5012,7 @@ components:
           - none
           - admin_required
           example: admin_required
-    CursorPaging_6:
+    CursorPaging_5:
       type: object
       description: Cursor-based pagination information
       properties:
@@ -6107,7 +5775,7 @@ components:
           type: integer
           description: Total number of assigned users
           example: 25
-    CursorPaging_7:
+    CursorPaging_6:
       type: object
       description: Cursor-based pagination information
       properties:
@@ -6324,7 +5992,7 @@ components:
           format: date-time
           description: Timestamp when the OBO mobility intent was last updated (ISO 8601 format)
           example: '2024-01-15T14:45:00Z'
-    WhatsAppBusinessAccount_3:
+    WhatsAppBusinessAccount_2:
       type: object
       description: WhatsApp Business Account information
       required:
@@ -6589,7 +6257,7 @@ components:
           description: Array of phone number records
         paging:
           $ref: '#/components/schemas/CursorPaging'
-    CursorPaging_8:
+    CursorPaging_7:
       type: object
       description: Cursor-based pagination information
       properties:
@@ -6785,7 +6453,7 @@ components:
           description: Array of schedule records
         paging:
           $ref: '#/components/schemas/CursorPaging'
-    CursorPaging_9:
+    CursorPaging_8:
       type: object
       description: Cursor-based pagination information
       properties:
@@ -7259,7 +6927,7 @@ components:
           type: string
           description: Graph API endpoint URL for the next page of results
           example: https://graph.facebook.com/v23.0/1234567890/activities?limit=25&after=NDMyNzQyODI3OTQw
-    WhatsAppBusinessAccount_4:
+    WhatsAppBusinessAccount_3:
       type: object
       description: WhatsApp Business Account details and configuration
       required:
@@ -10363,12 +10031,12 @@ paths:
       - bearerAuth: []
   /{Version}/{Business-ID}/add_phone_numbers:
     post:
-      summary: Add Phone Numbers to Business Account
-      description: 'Add one or more phone numbers to a WhatsApp Business Account for messaging purposes.
+      summary: Add Phone Number to Business Account
+      description: 'Add a preverified phone number to a WhatsApp Business Account. This endpoint is used by
 
-        Phone numbers must be in valid E.164 format and will undergo verification before
+        Partners to create a pool of Partner owned numbers that end clients
 
-        they can be used for customer communication.
+        can purchase.
 
 
         **Use Cases:**
@@ -10428,77 +10096,43 @@ paths:
         example: '1234567890123456'
       requestBody:
         required: true
-        description: Phone numbers to add to the business account
+        description: Phone number to add to the business account
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/AddPhoneNumbersRequest'
             examples:
-              single_phone_number:
-                summary: Add single phone number
+              basic_phone_number:
+                summary: Add phone number with E.164 format
                 value:
-                  phone_numbers:
-                  - '+1234567890'
-              multiple_phone_numbers:
-                summary: Add multiple phone numbers
-                value:
-                  phone_numbers:
-                  - '+1234567890'
-                  - '+1987654321'
-                  - '+44123456789'
+                  phone_number: '+1234567890'
       responses:
         '200':
-          description: Phone numbers processed successfully (some may have failed individually)
+          description: Phone number successfully added
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddPhoneNumbersResponse'
               examples:
-                all_successful:
-                  summary: All phone numbers added successfully
+                success:
+                  summary: Phone number successfully added
                   value:
-                    successful_count: 2
-                    failed_count: 0
-                    phone_number_records:
-                    - phone_number: '+1234567890'
-                      status: SUCCESS
-                      phone_number_id: '1234567890123456'
-                    - phone_number: '+1987654321'
-                      status: SUCCESS
-                      phone_number_id: '2345678901234567'
-                partial_success:
-                  summary: Some phone numbers failed to be added
-                  value:
-                    successful_count: 1
-                    failed_count: 1
-                    phone_number_records:
-                    - phone_number: '+1234567890'
-                      status: SUCCESS
-                      phone_number_id: '1234567890123456'
-                    - phone_number: '+1987654321'
-                      status: FAILED
-                      error_message: Phone number is already registered to another business
-                pending_verification:
-                  summary: Phone numbers require verification
-                  value:
-                    successful_count: 0
-                    failed_count: 0
-                    phone_number_records:
-                    - phone_number: '+1234567890'
-                      status: PENDING_VERIFICATION
-                      verification_code: '123456'
+                    id: '1234567890123456'
         '400':
-          description: Bad Request - Invalid parameters or malformed request
+          description: Bad Request - Invalid parameters, malformed request, or phone number already registered
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Invalid phone number format. Phone numbers must be in E.164 format
-                  type: OAuthException
-                  code: 100
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
+              examples:
+                invalid_phone_number:
+                  summary: Invalid phone number
+                  value:
+                    error:
+                      message: Invalid phone number
+                      type: OAuthException
+                      code: 100
+                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
         '401':
           description: Unauthorized - Invalid or missing access token
           content:
@@ -11295,9 +10929,9 @@ paths:
                   is_transient: true
       security:
       - bearerAuth: []
-  /{Version}/{Business-ID}/onboard_partner_to_mm_lite:
+  /{Version}/{Business-ID}/onboard_partners_to_mm_lite:
     post:
-      summary: Onboard Partner to MM Lite
+      summary: Onboard Partners to MM Lite
       description: 'Send a request from the partner to onboard an end business to MM Lite.
 
         This creates a business agreement request and sets OBO mobility intents
@@ -11345,7 +10979,7 @@ paths:
         the existing request ID is returned instead of creating a duplicate.
 
         '
-      operationId: onboardPartnerToMMLite
+      operationId: onboardPartnersToMMLite
       tags:
       - MM Lite Onboarding
       parameters:
@@ -11899,34 +11533,10 @@ paths:
               $ref: '#/components/schemas/PreVerifiedPhoneNumberShareRequest'
             examples:
               basic_sharing:
-                summary: Basic phone number sharing with messaging permissions
+                summary: Basic phone number sharing
                 value:
-                  preverified_phone_number_id: '1234567890123456'
-                  target_business_id: '9876543210987654'
-                  permissions:
-                  - MESSAGING
-                  - VIEW_DETAILS
-                  sharing_note: Sharing for joint marketing campaign
-              temporary_sharing:
-                summary: Temporary sharing with expiration date
-                value:
-                  preverified_phone_number_id: '1234567890123456'
-                  target_business_id: '9876543210987654'
-                  permissions:
-                  - MESSAGING
-                  sharing_note: Temporary access for Q1 campaign
-                  expiration_date: '2024-03-31T23:59:59Z'
-              full_permissions:
-                summary: Sharing with comprehensive permissions
-                value:
-                  preverified_phone_number_id: '1234567890123456'
-                  target_business_id: '9876543210987654'
-                  permissions:
-                  - MESSAGING
-                  - VIEW_DETAILS
-                  - MANAGE_SETTINGS
-                  - VIEW_ANALYTICS
-                  sharing_note: Full partnership access for subsidiary business
+                  preverified_id: '1234567890123456'
+                  partner_business_id: '9876543210987654'
       responses:
         '200':
           description: Successfully shared pre-verified phone number with target business
@@ -11938,39 +11548,7 @@ paths:
                 successful_sharing:
                   summary: Successful phone number sharing operation
                   value:
-                    sharing_id: '5678901234567890'
-                    status: ACTIVE
-                    shared_at: '2024-01-15T10:30:00Z'
-                    preverified_phone_number:
-                      id: '1234567890123456'
-                      display_phone_number: +1 (555) 123-4567
-                      country_prefix: 1
-                      verification_status: VERIFIED
-                    target_business:
-                      id: '9876543210987654'
-                      name: Partner Business Corp
-                      verification_status: VERIFIED
-                    granted_permissions:
-                    - MESSAGING
-                    - VIEW_DETAILS
-                temporary_sharing_success:
-                  summary: Successful temporary sharing with expiration
-                  value:
-                    sharing_id: '5678901234567891'
-                    status: ACTIVE
-                    shared_at: '2024-01-15T10:30:00Z'
-                    preverified_phone_number:
-                      id: '1234567890123456'
-                      display_phone_number: +1 (555) 123-4567
-                      country_prefix: 1
-                      verification_status: VERIFIED
-                    target_business:
-                      id: '9876543210987654'
-                      name: Partner Business Corp
-                      verification_status: VERIFIED
-                    granted_permissions:
-                    - MESSAGING
-                    expiration_date: '2024-03-31T23:59:59Z'
+                    success: true
         '400':
           description: Bad Request - Invalid parameters or malformed request
           content:
@@ -11982,23 +11560,15 @@ paths:
                   summary: Invalid pre-verified phone number ID
                   value:
                     error:
-                      message: 'Invalid preverified_phone_number_id: must be a valid numeric string'
+                      message: 'Invalid preverified_id: must be a valid numeric string'
                       type: OAuthException
                       code: 100
                       fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
                 invalid_business_id:
-                  summary: Invalid target business ID
+                  summary: Invalid partner business ID
                   value:
                     error:
-                      message: 'Invalid target_business_id: business not found or not accessible'
-                      type: OAuthException
-                      code: 100
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                invalid_permissions:
-                  summary: Invalid permissions specified
-                  value:
-                    error:
-                      message: 'Invalid permissions: one or more permissions are not valid for phone number sharing'
+                      message: 'Invalid partner_business_id: business not found or not accessible'
                       type: OAuthException
                       code: 100
                       fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
@@ -12098,728 +11668,6 @@ paths:
                       type: GraphMethodException
                       code: 100
                       fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '429':
-          description: Too Many Requests - Rate limit exceeded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Application request limit reached
-                  type: OAuthException
-                  code: 4
-                  error_subcode: 2446079
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                  is_transient: true
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: An unexpected error occurred. Please retry your request
-                  type: GraphMethodException
-                  code: 2
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                  is_transient: true
-      security:
-      - bearerAuth: []
-    delete:
-      summary: Delete Pre-Verified Phone Number Sharing
-      description: 'Delete an existing sharing relationship for a pre-verified phone number, revoking
-
-        access permissions previously granted to another business entity.
-
-
-
-        **Use Cases:**
-
-        - Revoke phone number access from partner businesses
-
-        - End temporary sharing relationships
-
-        - Remove phone number sharing when partnerships conclude
-
-        - Clean up unused sharing relationships for security purposes
-
-
-
-        **Business Logic:**
-
-        - Only the original sharing business can delete sharing relationships
-
-        - Deletion immediately revokes all granted permissions
-
-        - Shared phone numbers return to exclusive ownership of the original business
-
-        - Deletion operations are logged and auditable for compliance purposes
-
-
-
-        **Rate Limiting:**
-
-        Standard Graph API rate limits apply. Use appropriate retry logic with exponential backoff.
-
-
-
-        **Validation:**
-
-        - Sharing relationship must exist and be accessible to the requesting business
-
-        - Only the business that created the sharing relationship can delete it
-
-        - Deletion operation must comply with business relationship and access control policies
-
-        '
-      operationId: deletePreVerifiedPhoneNumberSharing
-      tags:
-      - Pre-Verified Phone Number Sharing
-      parameters:
-      - $ref: '#/components/parameters/UserAgent'
-      - $ref: '#/components/parameters/Authorization'
-      - name: Version
-        in: path
-        required: true
-        description: 'Graph API version to use for this request. Determines the API behavior and available features.
-
-          '
-        schema:
-          type: string
-          pattern: ^v[0-9]+\.[0-9]+$
-        example: v23.0
-      - name: Business-ID
-        in: path
-        required: true
-        description: 'Your Business ID that owns the sharing relationship to be deleted.
-
-          This ID can be found in your Meta Business Manager or through business management APIs.
-
-          '
-        schema:
-          type: string
-          pattern: ^[0-9]+$
-        example: 1234567890123456
-      requestBody:
-        required: true
-        description: Sharing relationship identification for deletion
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PreVerifiedPhoneNumberShareDeleteRequest'
-            examples:
-              delete_sharing:
-                summary: Delete sharing relationship by sharing ID
-                value:
-                  sharing_id: '5678901234567890'
-              delete_by_target:
-                summary: Delete sharing relationship by target business and phone number
-                value:
-                  preverified_phone_number_id: '1234567890123456'
-                  target_business_id: '9876543210987654'
-      responses:
-        '200':
-          description: Successfully deleted pre-verified phone number sharing relationship
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PreVerifiedPhoneNumberShareDeleteResponse'
-              examples:
-                successful_deletion:
-                  summary: Successful sharing relationship deletion
-                  value:
-                    success: true
-                    deleted_at: '2024-01-15T10:30:00Z'
-                    sharing_id: '5678901234567890'
-                    preverified_phone_number:
-                      id: '1234567890123456'
-                      display_phone_number: +1 (555) 123-4567
-                    target_business:
-                      id: '9876543210987654'
-                      name: Partner Business Corp
-        '400':
-          description: Bad Request - Invalid parameters or malformed request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              examples:
-                invalid_sharing_id:
-                  summary: Invalid sharing ID
-                  value:
-                    error:
-                      message: 'Invalid sharing_id: must be a valid numeric string'
-                      type: OAuthException
-                      code: 100
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                missing_parameters:
-                  summary: Missing required parameters
-                  value:
-                    error:
-                      message: Either sharing_id or both preverified_phone_number_id and target_business_id must be provided
-                      type: OAuthException
-                      code: 100
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '401':
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Invalid OAuth access token
-                  type: OAuthException
-                  code: 190
-                  error_subcode: 463
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '403':
-          description: Forbidden - Insufficient permissions or access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              examples:
-                insufficient_permissions:
-                  summary: Insufficient permissions to delete sharing relationship
-                  value:
-                    error:
-                      message: Your business doesn't have permission to delete this sharing relationship
-                      type: OAuthException
-                      code: 200
-                      error_subcode: 1349174
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                      error_user_title: Permission Denied
-                      error_user_msg: Your business doesn't have permission to delete this sharing relationship
-                not_sharing_owner:
-                  summary: Not the owner of the sharing relationship
-                  value:
-                    error:
-                      message: Only the business that created the sharing relationship can delete it
-                      type: OAuthException
-                      code: 200
-                      error_subcode: 1349175
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                      error_user_title: Access Denied
-                      error_user_msg: Cannot delete sharing relationship created by another business
-        '404':
-          description: Not Found - Sharing relationship does not exist or is not accessible
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              examples:
-                sharing_not_found:
-                  summary: Sharing relationship not found
-                  value:
-                    error:
-                      message: Sharing relationship not found
-                      type: GraphMethodException
-                      code: 803
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                phone_number_not_found:
-                  summary: Pre-verified phone number not found
-                  value:
-                    error:
-                      message: Pre-verified phone number not found
-                      type: GraphMethodException
-                      code: 803
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '422':
-          description: Unprocessable Entity - Request parameters are valid but cannot be processed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              examples:
-                sharing_already_deleted:
-                  summary: Sharing relationship already deleted
-                  value:
-                    error:
-                      message: Sharing relationship has already been deleted
-                      type: GraphMethodException
-                      code: 100
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                sharing_in_use:
-                  summary: Sharing relationship currently in use
-                  value:
-                    error:
-                      message: Cannot delete sharing relationship while phone number is actively being used by target business
-                      type: GraphMethodException
-                      code: 100
-                      fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '429':
-          description: Too Many Requests - Rate limit exceeded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Application request limit reached
-                  type: OAuthException
-                  code: 4
-                  error_subcode: 2446079
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                  is_transient: true
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: An unexpected error occurred. Please retry your request
-                  type: GraphMethodException
-                  code: 2
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                  is_transient: true
-      security:
-      - bearerAuth: []
-  /{Version}/{Business-ID}/whatsapp_business_accounts:
-    get:
-      summary: Get WhatsApp Business Accounts
-      description: 'Retrieve a list of WhatsApp Business Accounts owned by the specified business portfolio.
-
-
-        This endpoint provides information about WhatsApp Business Accounts that are owned
-
-        by the business, including their configuration, status, and core properties. This
-
-        corresponds to the GraphBusinessWhatsAppBusinessAccountsEdge functionality.
-
-
-        **Use Cases:**
-
-        - Retrieve list of owned WhatsApp Business Accounts
-
-        - Monitor WABA status and configuration
-
-        - Verify WABA details for business integrations
-
-        - Manage business WhatsApp messaging setups
-
-
-        **Rate Limiting:**
-
-        Standard Graph API rate limits apply. Use appropriate retry logic with exponential backoff.
-
-
-        **Caching:**
-
-        WABA information can be cached for moderate periods, but status information may change
-
-        frequently. Implement appropriate cache invalidation strategies.
-
-        '
-      operationId: getWhatsAppBusinessAccounts
-      tags:
-      - WhatsApp Business Accounts
-      parameters:
-      - $ref: '#/components/parameters/UserAgent'
-      - $ref: '#/components/parameters/Authorization'
-      - name: Version
-        in: path
-        required: true
-        description: 'Graph API version to use for this request. Determines the API behavior and available features.
-
-          '
-        schema:
-          type: string
-          pattern: ^v[0-9]+\.[0-9]+$
-        example: v23.0
-      - name: Business-ID
-        in: path
-        required: true
-        description: 'Your business portfolio ID. This ID can be found in the Meta Business Suite
-
-          or through business management APIs.
-
-          '
-        schema:
-          type: string
-          pattern: ^[0-9]+$
-        example: '1234567890123456'
-      - name: fields
-        in: query
-        required: false
-        description: 'Comma-separated list of fields to include in the response. If not specified,
-
-          default fields will be returned (id, name, currency, timezone_id).
-
-          Available fields: id, name, account_review_status, purchase_order_number, currency, timezone_id, business_verification_status, country, on_behalf_of_business_info, is_enabled_for_insights, message_template_namespace
-
-          '
-        schema:
-          type: string
-        example: id,name,account_review_status,currency,country
-      - name: business_type
-        in: query
-        required: false
-        description: 'Filter results by WhatsApp Business Account type
-
-          '
-        schema:
-          type: array
-          items:
-            type: string
-            enum:
-            - ENTERPRISE
-            - SMB
-        example:
-        - ENTERPRISE
-      - name: limit
-        in: query
-        required: false
-        description: 'Maximum number of WhatsApp Business Accounts to return per page. Default is 25, maximum is 100.
-
-          '
-        schema:
-          type: integer
-          minimum: 1
-          maximum: 100
-          default: 25
-        example: 25
-      - name: after
-        in: query
-        required: false
-        description: 'Cursor for pagination. Use this to get the next page of results.
-
-          '
-        schema:
-          type: string
-        example: QVFIUjNpUWpVWmRBd0Rn
-      - name: before
-        in: query
-        required: false
-        description: 'Cursor for pagination. Use this to get the previous page of results.
-
-          '
-        schema:
-          type: string
-        example: QVFIUjNpUWpVWmRBd0Dn
-      - name: find
-        in: query
-        required: false
-        description: 'Find a specific WhatsApp Business Account by ID
-
-          '
-        schema:
-          type: string
-        example: '9876543210987654'
-      responses:
-        '200':
-          description: Successfully retrieved WhatsApp Business Accounts
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WhatsAppBusinessAccountsResponse'
-              examples:
-                multiple_accounts:
-                  summary: Multiple WhatsApp Business Accounts
-                  value:
-                    data:
-                    - id: '1234567890123456'
-                      name: Primary Business WABA
-                      account_review_status: APPROVED
-                      currency: USD
-                      country: US
-                      timezone_id: '1'
-                      business_verification_status: VERIFIED
-                      is_enabled_for_insights: true
-                      message_template_namespace: business_namespace_123
-                    - id: '2345678901234567'
-                      name: Secondary Business WABA
-                      account_review_status: PENDING
-                      currency: EUR
-                      country: DE
-                      timezone_id: '5'
-                      business_verification_status: PENDING
-                      is_enabled_for_insights: false
-                      message_template_namespace: business_namespace_456
-                    paging:
-                      cursors:
-                        after: QVFIUjNpUWpVWmRBd0Rn
-                      next: https://graph.facebook.com/v23.0/1234567890/whatsapp_business_accounts?after=QVFIUjNpUWpVWmRBd0Rn
-                single_account:
-                  summary: Single WhatsApp Business Account
-                  value:
-                    data:
-                    - id: '1234567890123456'
-                      name: My Business WABA
-                      account_review_status: APPROVED
-                      currency: USD
-                      country: US
-                      timezone_id: '1'
-                      business_verification_status: VERIFIED
-                      is_enabled_for_insights: true
-                      message_template_namespace: business_namespace_123
-                empty_response:
-                  summary: No WhatsApp Business Accounts
-                  value:
-                    data: []
-        '400':
-          description: Bad Request - Invalid parameters or malformed request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: 'Invalid parameter: business_id must be a valid numeric string'
-                  type: OAuthException
-                  code: 100
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '401':
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Invalid OAuth access token
-                  type: OAuthException
-                  code: 190
-                  error_subcode: 463
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '403':
-          description: Forbidden - Insufficient permissions or access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Your app doesn't have permission to access WhatsApp Business Accounts for this business
-                  type: OAuthException
-                  code: 200
-                  error_subcode: 1349174
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                  error_user_title: Permission Denied
-                  error_user_msg: Your app doesn't have permission to access this resource
-        '404':
-          description: Not Found - Business ID does not exist or is not accessible
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Business not found
-                  type: GraphMethodException
-                  code: 803
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '422':
-          description: Unprocessable Entity - Request parameters are valid but cannot be processed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: The requested fields are not available for this business
-                  type: GraphMethodException
-                  code: 100
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '429':
-          description: Too Many Requests - Rate limit exceeded
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Application request limit reached
-                  type: OAuthException
-                  code: 4
-                  error_subcode: 2446079
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                  is_transient: true
-        '500':
-          description: Internal Server Error - Unexpected server error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: An unexpected error occurred. Please retry your request
-                  type: GraphMethodException
-                  code: 2
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                  is_transient: true
-      security:
-      - bearerAuth: []
-    post:
-      summary: Create WhatsApp Business Account
-      description: 'Create a new WhatsApp Business Account under the specified business portfolio.
-
-
-        This endpoint creates a new WABA with the provided configuration and associates it
-
-        with the business portfolio. The account will be set up with the specified payment
-
-        method and business settings.
-
-
-        **Rate Limiting:**
-
-        Standard Graph API rate limits apply. Account creation may have additional
-
-        rate limits to prevent abuse.
-
-
-        **Business Logic:**
-
-        - Account name must be unique within the business portfolio
-
-        - Payment method must be valid and active
-
-        - Business must have appropriate permissions for WABA creation
-
-        - Created account will be in pending state until verification is complete
-
-        '
-      operationId: createWhatsAppBusinessAccount
-      tags:
-      - WhatsApp Business Accounts
-      parameters:
-      - $ref: '#/components/parameters/UserAgent'
-      - $ref: '#/components/parameters/Authorization'
-      - name: Version
-        in: path
-        required: true
-        description: 'Graph API version to use for this request. Determines the API behavior and available features.
-
-          '
-        schema:
-          type: string
-          pattern: ^v[0-9]+\.[0-9]+$
-        example: v23.0
-      - name: Business-ID
-        in: path
-        required: true
-        description: 'Your business portfolio ID. This ID can be found in the Meta Business Suite
-
-          or through business management APIs.
-
-          '
-        schema:
-          type: string
-          pattern: ^[0-9]+$
-        example: '1234567890123456'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WhatsAppBusinessAccountCreationRequest'
-            examples:
-              basic_creation:
-                summary: Basic WABA creation with minimal parameters
-                value:
-                  name: My Business WhatsApp Account
-                  currency: USD
-                  timezone_id: 1
-              enterprise_creation:
-                summary: Enterprise WABA creation with full parameters
-                value:
-                  name: Enterprise WhatsApp Account
-                  primary_funding_id: '1234567890123456'
-                  purchase_order_number: PO-2024-001
-                  currency: USD
-                  timezone_id: 1
-                  business_type: ENTERPRISE
-              on_behalf_creation:
-                summary: Creating WABA on behalf of another business
-                value:
-                  name: Client WhatsApp Account
-                  primary_funding_id: '1234567890123456'
-                  currency: USD
-                  timezone_id: 1
-                  business_type: ENTERPRISE
-                  on_behalf_of_business_id: '9876543210987654'
-      responses:
-        '200':
-          description: Successfully created WhatsApp Business Account
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WhatsAppBusinessAccountCreationResponse'
-              examples:
-                successful_creation:
-                  summary: Successful WABA creation
-                  value:
-                    id: '1234567890123456'
-                    payment_account_id: '9876543210987654'
-        '400':
-          description: Bad Request - Invalid parameters or malformed request
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: 'Invalid parameter: name is required'
-                  type: OAuthException
-                  code: 100
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '401':
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Invalid OAuth access token
-                  type: OAuthException
-                  code: 190
-                  error_subcode: 463
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '403':
-          description: Forbidden - Insufficient permissions or access denied
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Your app doesn't have permission to create WhatsApp Business Accounts
-                  type: OAuthException
-                  code: 200
-                  error_subcode: 1349174
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-                  error_user_title: Permission Denied
-                  error_user_msg: Your app doesn't have permission to access this resource
-        '404':
-          description: Not Found - Business ID does not exist or is not accessible
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: Business not found
-                  type: GraphMethodException
-                  code: 803
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
-        '422':
-          description: Unprocessable Entity - Request parameters are valid but cannot be processed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GraphAPIError'
-              example:
-                error:
-                  message: 'Cannot create WhatsApp Business Account: payment method is invalid'
-                  type: GraphMethodException
-                  code: 100
-                  fbtrace_id: AXsgnV2Cm3ZMGF3dF_cfYIn
         '429':
           description: Too Many Requests - Rate limit exceeded
           content:
@@ -13462,6 +12310,11 @@ paths:
       - $ref: '#/components/parameters/UserAgent'
       - $ref: '#/components/parameters/Authorization'
       - $ref: '#/components/parameters/ContentType'
+      - name: Version
+        in: path
+        required: true
+        schema:
+          type: string
       - name: Phone-Number-ID
         in: path
         required: true
@@ -19158,7 +18011,7 @@ paths:
         profile_picture_handle, then include it in the request.
 
         '
-      operationId: updateWhatsAppBusinessProfile
+      operationId: updateWhatsAppBusinessProfileInformation
       tags:
       - WhatsApp Business Profile
       parameters:
