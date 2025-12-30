@@ -184,7 +184,7 @@ tags:
     ## Setup Requirements
 
 
-    1. **Enable Payload Encryption**: Use `POST /<WABA_ID>/settings` to enable encryption
+    1. **Enable Payload Encryption**: Use `POST /<Phone-Number-ID>/settings` to enable encryption
 
     2. **RSA Key Pair**: Generate and provide a 2048-bit RSA public key (base64 encoded)
 
@@ -3141,40 +3141,46 @@ components:
       type: object
       description: Request payload for updating Official Business Account status
       required:
-      - action
+      - business_website_url
+      - primary_country_of_operation
       properties:
-        action:
+        business_website_url:
           type: string
-          description: Action to perform on the Official Business Account status
-          enum:
-          - SUBMIT_APPLICATION
-          - WITHDRAW_APPLICATION
-          - RESUBMIT_APPLICATION
-          example: SUBMIT_APPLICATION
-        application_data:
-          type: object
-          description: Additional data required for OBA application (if applicable)
-          properties:
-            business_name:
-              type: string
-              description: Official business name for verification
-              example: Acme Corporation Ltd
-              maxLength: 255
-            business_description:
-              type: string
-              description: Brief description of business activities
-              example: Leading provider of innovative business solutions
-              maxLength: 1000
-            website_url:
-              type: string
-              format: uri
-              description: Official business website URL
-              example: https://www.acmecorp.com
-            contact_email:
-              type: string
-              format: email
-              description: Primary business contact email
-              example: business@acmecorp.com
+          format: uri
+          description: Official business website URL
+          example: https://www.meta.com
+        primary_country_of_operation:
+          type: string
+          description: Primary country where the business operates
+          example: US
+        primary_language:
+          type: string
+          description: Primary language used by the business
+          example: en_US
+        parent_business_or_brand:
+          type: string
+          description: Parent business or brand name
+          example: Acme Corporation Ltd
+          maxLength: 255
+        supporting_links:
+          type: array
+          description: Supporting links that demonstrate business notability (minimum 5, maximum 10)
+          minItems: 5
+          maxItems: 10
+          items:
+            type: string
+            format: uri
+          example:
+          - https://www.example.com/press1
+          - https://www.example.com/press2
+          - https://www.example.com/press3
+          - https://www.example.com/press4
+          - https://www.example.com/press5
+        additional_supporting_information:
+          type: string
+          description: Additional information to support the Official Business Account application
+          example: Leading provider of innovative business solutions
+          maxLength: 1000
     OfficialBusinessAccountUpdateResponse:
       type: object
       description: Response for Official Business Account status update operation
@@ -3785,8 +3791,6 @@ components:
           example: '123456'
         backup:
           $ref: '#/components/schemas/WhatsAppBusinessAccountBackup'
-        tier:
-          $ref: '#/components/schemas/V2TierName'
         data_localization_region:
           $ref: '#/components/schemas/WhatsAppDataLocalizationRegion'
         meta_store_retention_minutes:
@@ -3807,13 +3811,6 @@ components:
           type: string
           description: Encrypted backup data for account migration
           example: YOUR_BACKUP_DATA
-    V2TierName:
-      type: string
-      description: WhatsApp Business API tier configuration
-      enum:
-      - PROD
-      - SANDBOX
-      example: PROD
     WhatsAppDataLocalizationRegion:
       type: string
       description: Data localization region for message storage (deprecated in v21+)
@@ -14730,7 +14727,7 @@ paths:
 
         - Error responses will be returned unencrypted if the underlying JSON is incorrectly formatted
 
-        - Payload encryption must be enabled for the phone number using the `POST /<WABA_ID>/settings` endpoint
+        - Payload encryption must be enabled for the phone number using the `POST /<Phone-Number-ID>/settings` endpoint
 
         - The encrypted payload must follow the same structure as the original `/messages` endpoint
 
@@ -16670,12 +16667,11 @@ paths:
                     password: YOUR_BACKUP_PASSWORD
                     data: YOUR_BACKUP_DATA
               advanced_registration:
-                summary: Registration with tier configuration
-                description: Register with specific tier and data localization settings
+                summary: Registration with data localization settings
+                description: Register with specific data localization settings
                 value:
                   messaging_product: whatsapp
                   pin: '123456'
-                  tier: PROD
                   data_localization_region: AE
       responses:
         '200':
